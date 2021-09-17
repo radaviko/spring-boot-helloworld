@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-helloworld
+  labels:
+    app: spring-boot-helloworld
+    version: v1
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: '*'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-boot-helloworld
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: spring-boot-helloworld
+        version: v1
+    spec:
+      containers:
+      - name: spring-boot-helloworld
+        image: spring-boot-helloworld:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8778
+            name: jolokia
+          - containerPort: 8080
+            name: http 
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 180
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 10
+        resources: 
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
