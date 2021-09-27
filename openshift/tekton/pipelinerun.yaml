@@ -1,0 +1,28 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  generateName: mvn-binary-pipelinerun
+spec:
+  serviceAccountName: pipeline 
+  pipelineRef:
+    name: mvn-binary-pipeline
+  workspaces:
+  - name: shared-workspace
+    volumeClaimTemplate:
+      spec: 
+        accessModes: 
+          - ReadWriteOnce # access mode may affect how you can use this volume in parallel tasks
+        resources:
+          requests:
+            storage: 1Gi
+  - name: maven-settings 
+    emptyDir: {}
+  - name: images-url 
+    emptyDir: {}  
+  params: 
+    - name: GIT_URL
+      value: https://github.com/DaniellaFreese/spring-boot-helloworld.git
+    - name: IMAGE 
+      value: spring-boot-helloworld
+    - name: TAG 
+      value: "latest"

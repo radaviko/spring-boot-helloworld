@@ -1,0 +1,98 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: mvn-binary-pipeline
+spec:
+  params: 
+    - name: GIT_URL
+      description: git repo url
+      type: string
+    - name: IMAGE 
+      description: app image name to be created 
+      type: string 
+    - name: TAG
+      description: tag to be applied to the image 
+      type: string 
+    - name: NAMESPACE
+      description: namespace to deploy code 
+      type: string 
+  workspaces:
+    - name: shared-workspace
+    - name: maven-settings
+    - name: images-url 
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        name: git-clone
+        kind: ClusterTask 
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url 
+          value: $(params.GIT_URL)
+        - name: subdirectory
+          value: ""
+        - name: deleteExisting
+          value: "true"
+        - name: revision 
+          value: master
+    - name: unit-test 
+      taskRef: 
+        name: maven
+        kind: ClusterTask
+      workspaces: 
+        - name: source 
+          workspace: shared-workspace
+        - name: maven-settings
+          workspace: maven-settings 
+      params: 
+        - name: GOALS 
+          value: ['test']
+    - name: maven package
+      taskRef: 
+        name: maven
+        kind: ClusterTask 
+      workspaces: 
+        - name: source 
+          workspace: shared-workspace
+        - name: maven-settings
+          workspace: maven-settings 
+      params: 
+        - name: GOALS 
+          value: 
+            - -DskipTests
+            - clean 
+            - package  
+      runAfter: 
+        - unit-test
+    - name: buildah-build-image 
+      taskRef: 
+        name: buildah 
+        kind: ClusterTask 
+      workspaces: 
+      - name: source 
+        workspace: shared-workspace 
+      params: 
+        - name: IMAGE
+          value: image-registry.openshift-image-registry.svc:5000/$(params.NAMESPACE)/$(params.IMAGE):$(params.TAG)
+        - name: DOCKERFILE 
+          value: openshift/app/Dockerfile 
+        - name: TLSVERIFY
+          value: "false"
+      runAfter: 
+        - maven package
+    - name: deploy-dev 
+      taskRef: 
+        name: openshift-client
+        kind: ClusterTask
+      workspaces:
+          - name: manifest-dir
+            workspace: shared-workspace
+      params:
+          - name: SCRIPT
+            value: |
+              oc apply --filename openshift/app/deployment.yaml
+              oc wait --for=condition=available --timeout=600s deployment/spring-boot-helloworld
+              echo "-----------Displaying all the pods-----------"
+              oc get pods

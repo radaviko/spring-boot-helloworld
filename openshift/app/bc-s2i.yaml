@@ -14,7 +14,7 @@ spec:
   output:
     to:
       kind: "ImageStreamTag"
-      name: "spring-boot-helloworld-s2i:latest"
+      name: "spring-boot-helloworld:latest"
   source:
     git:
       ref: master
