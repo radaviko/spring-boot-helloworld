@@ -26,3 +26,5 @@ spec:
       value: spring-boot-helloworld
     - name: TAG 
       value: "latest"
+    - name: NAMESPACE
+      value: "danny"
