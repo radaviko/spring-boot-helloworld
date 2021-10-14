@@ -14,4 +14,4 @@ steps:
   inputs:
     connectionType: 'OpenShift Connection Service'
     openshiftService: 'OCP connection'
-    cmd: 'oc apply -f openshift/app/svc.yaml'
+    cmd: 'oc apply -f spring-boot-helloworld/openshift/app/svc.yaml'
