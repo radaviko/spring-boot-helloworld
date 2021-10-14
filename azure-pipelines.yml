@@ -14,5 +14,4 @@ steps:
   inputs:
     connectionType: 'OpenShift Connection Service'
     openshiftService: 'OCP connection'
-    version: '4.7'
     cmd: 'oc apply -f openshift/app/svc.yaml'
