@@ -10,6 +10,13 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "$(Build.SourcesDirectory)"
+      
+      echo "$(Pipeline.Workspace)"
 - task: oc-cmd@2
   inputs:
     connectionType: 'OpenShift Connection Service'
